@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="反轉雷達">
+<title>台股反轉雷達</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#070b18;--panel:#0e1530;--line:#1d2a55;--tx:#e6ecff;--mu:#8b9ac7;--cy:#22d3ee;--vi:#a78bfa;--up:#34d399;--dn:#f87171;--am:#fbbf24}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+body{background:radial-gradient(900px 420px at 80% -10%,#1a1a5a55,transparent),radial-gradient(700px 400px at -10% 10%,#0a3a5a55,transparent),var(--bg);min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(#22d3ee0b 1px,transparent 1px),linear-gradient(90deg,#22d3ee0b 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(#000,transparent 70%)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:#070b18d9;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header img{width:34px;height:34px;border-radius:9px}
+header h1{font-size:17px;margin:0;letter-spacing:.5px}
+header small{display:block;color:var(--mu);font-size:11px}
+.chip{margin-left:auto;font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mu);white-space:nowrap}
+.chip.on{color:var(--up);border-color:#34d39955}.chip.off{color:var(--am);border-color:#fbbf2455}
+main{position:relative;max-width:720px;margin:0 auto;padding:14px 14px 0}
+.card{background:linear-gradient(180deg,#111a3a,#0c1330);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h2{font-size:13px;margin:0 0 10px;color:var(--mu);font-weight:600;letter-spacing:1px}
+.warn{background:#3a1420;border:1px solid #f8717166;color:#fecaca;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.hero{text-align:center;position:relative;overflow:hidden}
+.hero .act{font-size:42px;font-weight:800;letter-spacing:4px;margin:4px 0}
+.hero.buy .act{color:var(--up);text-shadow:0 0 24px #34d39988}.hero.sell .act{color:var(--dn);text-shadow:0 0 24px #f8717188}.hero.hold .act{color:var(--cy);text-shadow:0 0 24px #22d3ee66}
+.hero .lbl{color:var(--mu);font-size:13px}
+.px{display:flex;justify-content:center;gap:14px;align-items:baseline;margin-top:10px}
+.px b{font-size:26px;font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:#0a1028;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.kpi span{display:block;color:var(--mu);font-size:11px}.kpi b{font-size:16px;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;border:1px solid var(--line);color:var(--tx);background:#0a1028}
+.tag.b{border-color:#34d39966;color:#86efac}.tag.s{border-color:#f8717166;color:#fca5a5}
+.stk{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #16224a}
+.stk:last-child{border:0}
+.rk{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;background:#0a1028;border:1px solid var(--line);color:var(--cy);flex:none}
+.stk .m{flex:1;min-width:0}.stk .n{font-weight:600}.stk .n i{font-style:normal;color:var(--mu);font-weight:400;font-size:12px;margin-left:6px}
+.stk .r{font-size:12px;color:var(--mu)}
+.sc{width:54px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
+.sc b{display:block;font-size:17px}.bar{height:4px;border-radius:4px;background:#16224a;margin-top:3px;overflow:hidden}.bar u{display:block;height:100%}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:7px 4px;text-align:right;border-bottom:1px solid #16224a;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:500}
+canvas{width:100%;height:190px;display:block}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mu);margin-top:6px}.leg i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+ul.tips{margin:0;padding-left:18px}ul.tips li{margin:7px 0}
+.small{font-size:12px;color:var(--mu)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:#070b18ee;backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:0;color:var(--mu);font:inherit;font-size:11px;padding:6px 0;border-radius:10px}
+nav button svg{display:block;margin:0 auto 2px;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.a{color:var(--cy);background:#22d3ee14}
+section{display:none}section.a{display:block;animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.empty{color:var(--mu);text-align:center;padding:24px 0;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon.svg" alt="">
+  <div><h1>台股反轉雷達</h1><small id="asof">載入中…</small></div>
+  <span id="net" class="chip on">線上</span>
+</header>
+<main>
+  <div id="demo" class="warn" hidden>⚠ 目前顯示的是【模擬資料】，僅供測試介面。請執行 GitHub Actions 後才會是真實行情。</div>
+
+  <section id="t-today" class="a">
+    <div id="hero" class="card hero hold"><div class="lbl">今日大盤建議</div><div class="act" id="act">—</div><div class="lbl" id="lbl"></div>
+      <div class="px"><b id="close">—</b><span id="chg"></span></div></div>
+    <div class="card"><h2>啟動中的訊號</h2><div id="active" class="small">—</div></div>
+    <div class="card"><h2>指標快照</h2><div class="grid" id="ind"></div></div>
+    <div class="card small">⚠ 本工具為歷史統計與研究輔助，不構成投資建議。歷史規律不保證未來重演，請自行評估風險並控管部位。</div>
+  </section>
+
+  <section id="t-buy"><div class="card"><h2>🟢 偏多觀察 10 檔</h2><div id="l-buy"></div><div class="small" id="m-buy"></div></div></section>
+  <section id="t-sell"><div class="card"><h2>🔴 偏空／風險 10 檔</h2><div id="l-sell"></div><div class="small" id="m-sell"></div></div></section>
+
+  <section id="t-bt">
+    <div class="card"><h2>樣本外淨值（只含訓練期之後、未參與挑選的資料）</h2><canvas id="cv"></canvas>
+      <div class="leg"><span><i style="background:#22d3ee"></i>訊號策略</span><span><i style="background:#8b9ac7"></i>買進持有</span></div>
+      <div id="eqs" class="small" style="margin-top:8px"></div></div>
+    <div class="card"><h2>通過驗證的組合訊號</h2><div id="rules"></div></div>
+    <div class="card"><h2>單一訊號成績（買進＝20日後上漲、賣出＝20日後下跌）</h2><div id="singles"></div></div>
+    <div class="card small" id="bt-note"></div>
+  </section>
+
+  <section id="t-tips">
+    <div class="card"><h2>比你的原始構想更好的做法</h2>
+      <ul class="tips">
+        <li><b>用「機率＋部位」取代「準確率」。</b>大盤反轉 20 年只有數十次，單看準確率很容易被運氣騙。建議看：勝率、平均報酬、最大回檔，並依訊號強度調整持股（例如 0／50／100%）。</li>
+        <li><b>嚴格的樣本外驗證。</b>本專案已用前 60% 挑規則、後 40% 檢驗。要再提升可改成「滾動前進式」多段驗證，並用打亂資料的對照組檢查是否只是巧合。</li>
+        <li><b>加入台股專屬籌碼因子。</b>融資維持率（130% 斷頭線、140~150% 清洗區）、台版VIX（VIXTWN&gt;30）、外資台指期未平倉、三大法人買賣超、融資單日大減。這些在財經媒體與投顧常被引用，但需要逐日歷史資料，建議下一步補進 Actions 累積。</li>
+        <li><b>週線訊號權重更高。</b>多位分析師強調週/月 KD 比日 KD 更可靠，可加入週線層級確認，減少假訊號。</li>
+        <li><b>實際交易標的用 ETF。</b>大盤訊號用 0050／006208（或槓桿型僅限短線）執行，比逐檔選股的成本與風險低；個股名單當作「觀察池」而非直接下單。</li>
+        <li><b>把交易成本與滑價算進去。</b>已用每次 0.2% 估算；個股請另計證交易稅 0.3%。</li>
+        <li><b>先紙上交易 1~3 個月。</b>用 Actions 每日記錄訊號與結果，累積真實的前瞻績效再決定投入資金。</li>
+      </ul></div>
+    <div class="card"><h2>參考的財經資訊（訊號靈感）</h2>
+      <div class="small">經濟日報／聯合新聞網（反彈四大訊號：融資、美股半導體、外資匯率、季線）、時報旺得富（融資維持率 130%/140%、落底訊號）、財訊與今周刊系列分析（週 KD、季線乖離）、投顧法人報告（VIXTWN&gt;30 後市統計）。回測中的 14 種訊號即據此轉為可量化規則。</div></div>
+  </section>
+</main>
+<nav>
+  <button class="a" data-t="today"><svg viewBox="0 0 24 24"><path d="M3 12l4-6 4 8 4-10 6 12"/></svg>今日</button>
+  <button data-t="buy"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>買進</button>
+  <button data-t="sell"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>賣出</button>
+  <button data-t="bt"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>回測</button>
+  <button data-t="tips"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z"/></svg>建議</button>
+</nav>
+<script>
+const $=s=>document.querySelector(s), pct=(v,d=1)=>(v*100).toFixed(d)+"%", f1=(v,d=1)=>v==null?"—":Number(v).toFixed(d);
+const KEY="twr:";
+async function load(name){
+  try{const r=await fetch("data/"+name+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();try{localStorage.setItem(KEY+name,JSON.stringify(j))}catch(e){}return j}
+  catch(e){try{const s=localStorage.getItem(KEY+name);if(s)return JSON.parse(s)}catch(_){}return null}
+}
+function net(){const c=$("#net");const on=navigator.onLine;c.textContent=on?"線上":"離線模式";c.className="chip "+(on?"on":"off")}
+addEventListener("online",net);addEventListener("offline",net);net();
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button,section").forEach(x=>x.classList.remove("a"));b.classList.add("a");$("#t-"+b.dataset.t).classList.add("a");scrollTo(0,0);if(b.dataset.t==="bt")drawEq()});
+
+let SIG=null;
+function renderSig(j){
+  SIG=j;if(j.demo)$("#demo").hidden=false;
+  $("#asof").textContent="資料日 "+j.data_end+"｜產生 "+j.generated.replace("T"," ").slice(0,16);
+  const rec=j.recommendation,cls=rec.action;$("#hero").className="card hero "+cls;
+  $("#act").textContent=cls==="buy"?"買進":cls==="sell"?"賣出":"觀望";$("#lbl").textContent=rec.label;
+  $("#close").textContent=j.close.toLocaleString("zh-TW",{minimumFractionDigits:2});
+  const c=j.change_pct;$("#chg").className=c>=0?"up":"dn";$("#chg").textContent=(c>=0?"▲ ":"▼ ")+Math.abs(c).toFixed(2)+"%";
+  let h="";
+  rec.buy_rules_on.forEach(r=>h+=`<div style="margin-bottom:6px"><span class="tag b">買進組合</span>${r.join(" ＋ ")}</div>`);
+  rec.sell_rules_on.forEach(r=>h+=`<div style="margin-bottom:6px"><span class="tag s">賣出組合</span>${r.join(" ＋ ")}</div>`);
+  if(rec.single_signals_on.length)h+="<div class='small' style='margin-top:6px'>今日觸發的單一訊號：</div>"+rec.single_signals_on.map(x=>`<span class="tag ${x.id[0]==="S"?"s":"b"}">${x.name}</span>`).join("");
+  $("#active").innerHTML=h||"今日沒有任何訊號觸發。";
+  const I=j.indicators;$("#ind").innerHTML=[["RSI(14)",f1(I.RSI14)],["K 值",f1(I.K)],["D 值",f1(I.D)],["季線乖離",f1(I["季線乖離%"])+"%"],["月線乖離",f1(I["月線乖離%"])+"%"],["MACD柱",f1(I["MACD柱"],2)]].map(([a,b])=>`<div class="kpi"><span>${a}</span><b>${b}</b></div>`).join("");
+  // 回測頁
+  const q=(r)=>r.n?`${pct(r.rate,0)} <span class="small">(${r.hit}/${r.n})</span>`:"—";
+  const rowC=(r)=>`<tr><td>${r.names.join("＋")}</td><td>${q(r.train)}</td><td>${q(r.test)}</td><td>${pct(r.test.avg)}</td></tr>`;
+  const tb=(rows)=>rows.length?`<table><tr><th>組合</th><th>訓練期</th><th>樣本外</th><th>外均報酬</th></tr>${rows.map(rowC).join("")}</table>`:`<div class="empty">沒有組合同時通過訓練期與樣本外檢驗。<br>這是誠實的結果：代表單靠價量技術指標很難穩定預測反轉。</div>`;
+  $("#rules").innerHTML=`<div class="small" style="margin:0 0 6px">買進</div>${tb(j.rules.buy)}<div class="small" style="margin:12px 0 6px">賣出</div>${tb(j.rules.sell)}`;
+  const rowS=(s)=>`<tr><td>${s.name}</td><td>${q(s.all)}</td><td>${pct(s.all.avg)}</td></tr>`;
+  $("#singles").innerHTML=["buy","sell"].map(k=>`<div class="small" style="margin:${k==="sell"?12:0}px 0 6px">${k==="buy"?"買進訊號":"賣出訊號"}</div><table><tr><th>訊號</th><th>勝率</th><th>平均</th></tr>${j[k].singles.map(rowS).join("")}</table>`).join("");
+  const e=j.equity,s=e.strategy_stat,b=e.buyhold_stat;
+  $("#eqs").innerHTML=s?`樣本外（${e.dates[0]} 起）：策略年化 ${pct(s.cagr)}、最大回檔 ${pct(s.mdd)}；買進持有年化 ${pct(b.cagr)}、最大回檔 ${pct(b.mdd)}；切換 ${e.trades} 次。`:"";
+  $("#bt-note").innerHTML=`資料 ${j.data_start} ~ ${j.data_end}（${j.n_days} 個交易日）。訓練/樣本外分界 ${j.split_date}。基準：任意一天持有 ${j.horizon} 日後上漲機率，訓練期 ${pct(j.base_rate.train_up,0)}、樣本外 ${pct(j.base_rate.test_up,0)}。訊號需明顯優於基準才算有效。多組合同時比較有「多重檢定」風險，單次通過不代表真有預測力。`;
+}
+function drawEq(){
+  if(!SIG||!SIG.equity.dates.length)return;const e=SIG.equity,cv=$("#cv"),dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
+  if(!w)return;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);
+  const all=[...e.strategy,...e.buyhold],mn=Math.min(...all),mx=Math.max(...all),n=e.strategy.length,P=6;
+  const X=i=>P+(w-2*P)*i/(n-1),Y=v=>h-P-(h-2*P)*(v-mn)/(mx-mn||1);
+  g.strokeStyle="#1d2a55";g.lineWidth=1;for(let i=0;i<4;i++){const y=P+(h-2*P)*i/3;g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}
+  const line=(a,c,lw,glow)=>{g.beginPath();a.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.strokeStyle=c;g.lineWidth=lw;g.shadowColor=glow?c:"transparent";g.shadowBlur=glow?10:0;g.stroke();g.shadowBlur=0};
+  line(e.buyhold,"#8b9ac7",1.5,false);line(e.strategy,"#22d3ee",2.2,true);
+}
+addEventListener("resize",drawEq);
+function renderStocks(j){
+  const mk=(k,key,color)=>{
+    const L=$("#l-"+k);if(!j[k].length){L.innerHTML='<div class="empty">尚無資料</div>';return}
+    L.innerHTML=j[k].map((s,i)=>`<div class="stk"><div class="rk">${i+1}</div><div class="m"><div class="n">${s.name}<i>${s.code}</i></div>
+      <div class="r">收 ${s.close}｜外資 ${s.foreign_lots>=0?"+":""}${s.foreign_lots.toLocaleString()} 張｜投信 ${s.trust_lots>=0?"+":""}${s.trust_lots.toLocaleString()} 張</div>
+      <div class="r">${s.reasons.join("・")}</div></div>
+      <div class="sc"><b style="color:${color}">${s[key].toFixed(0)}</b><div class="bar"><u style="width:${s[key]}%;background:${color}"></u></div></div></div>`).join("");
+    $("#m-"+k).innerHTML=`<div style="margin-top:10px">${j.date} 收盤後｜母體 ${j.universe} 檔（成交額≥5000萬、股價≥10）｜歷史累積 ${j.history_days} 日${j.history_days<20?"（不足 20 日，動能/均線因子暫以中性計）":""}。分數為多因子百分位，僅是『觀察名單』，非買賣指令。</div>`;
+  };
+  mk("buy","buy","#34d399");mk("sell","sell","#f87171");
+}
+(async()=>{
+  const [s,t]=await Promise.all([load("signals.json"),load("stocks.json")]);
+  if(s)renderSig(s);else{$("#asof").textContent="尚無資料，請先執行 Actions";$("#act").textContent="—"}
+  if(t){renderStocks(t);if(t.demo)$("#demo").hidden=false}
+})();
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
