@@ -1,0 +1,17 @@
+name: update-data
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 fetch_taiex.py
+      - run: python3 backtest.py
+      - run: |
+          git config user.name bot
+          git config user.email bot@users.noreply.github.com
+          git add taiex.csv signals.json
+          git commit -m update || true
+          git push
