@@ -160,12 +160,12 @@ function drawEq(){
 addEventListener("resize",drawEq);
 function renderStocks(j){
   const mk=(k,key,color)=>{
-    const L=$("#l-"+k);if(!j[k].length){L.innerHTML='<div class="empty">尚無資料</div>';return}
+    const L=$("#l-"+k);if(!j[k]||!j[k].length){L.innerHTML='<div class="empty">尚無資料</div>';return}
     L.innerHTML=j[k].map((s,i)=>`<div class="stk"><div class="rk">${i+1}</div><div class="m"><div class="n">${s.name}<i>${s.code}</i></div>
-      <div class="r">收 ${s.close}｜外資 ${s.foreign_lots>=0?"+":""}${s.foreign_lots.toLocaleString()} 張｜投信 ${s.trust_lots>=0?"+":""}${s.trust_lots.toLocaleString()} 張</div>
+      <div class="r">收 ${s.close}（${s.chg>=0?"+":""}${s.chg}%）｜量比 ${s.vol_ratio}｜RSI ${s.rsi??"—"}｜季線乖離 ${s.bias60??"—"}%</div>
       <div class="r">${s.reasons.join("・")}</div></div>
       <div class="sc"><b style="color:${color}">${s[key].toFixed(0)}</b><div class="bar"><u style="width:${s[key]}%;background:${color}"></u></div></div></div>`).join("");
-    $("#m-"+k).innerHTML=`<div style="margin-top:10px">${j.date} 收盤後｜母體 ${j.universe} 檔（成交額≥5000萬、股價≥10）｜歷史累積 ${j.history_days} 日${j.history_days<20?"（不足 20 日，動能/均線因子暫以中性計）":""}。分數為多因子百分位，僅是『觀察名單』，非買賣指令。</div>`;
+    $("#m-"+k).innerHTML=`<div style="margin-top:10px">${j.date} 收盤後｜母體：成交值前 ${j.universe} 檔｜歷史累積 ${j.history_days} 日。分數為近 5 日觸發的反轉指標數（量放大加分），未經個股歷史驗證，僅是『觀察名單』，非買賣指令。</div>`;
   };
   mk("buy","buy","#34d399");mk("sell","sell","#f87171");
 }
