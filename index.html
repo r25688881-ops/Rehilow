@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="反轉雷達">
 <title>台股反轉雷達</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 :root{--bg:#070b18;--panel:#0e1530;--line:#1d2a55;--tx:#e6ecff;--mu:#8b9ac7;--cy:#22d3ee;--vi:#a78bfa;--up:#34d399;--dn:#f87171;--am:#fbbf24}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -62,7 +62,7 @@ section{display:none}section.a{display:block;animation:in .25s}
 </head>
 <body>
 <header>
-  <img src="icons/icon.svg" alt="">
+  <img src="icon.svg" alt="">
   <div><h1>台股反轉雷達</h1><small id="asof">載入中…</small></div>
   <span id="net" class="chip on">線上</span>
 </header>
@@ -115,7 +115,7 @@ section{display:none}section.a{display:block;animation:in .25s}
 const $=s=>document.querySelector(s), pct=(v,d=1)=>(v*100).toFixed(d)+"%", f1=(v,d=1)=>v==null?"—":Number(v).toFixed(d);
 const KEY="twr:";
 async function load(name){
-  try{const r=await fetch("data/"+name+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();try{localStorage.setItem(KEY+name,JSON.stringify(j))}catch(e){}return j}
+  try{const r=await fetch(name+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();try{localStorage.setItem(KEY+name,JSON.stringify(j))}catch(e){}return j}
   catch(e){try{const s=localStorage.getItem(KEY+name);if(s)return JSON.parse(s)}catch(_){}return null}
 }
 function net(){const c=$("#net");const on=navigator.onLine;c.textContent=on?"線上":"離線模式";c.className="chip "+(on?"on":"off")}

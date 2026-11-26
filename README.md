@@ -5,10 +5,11 @@
 > 研究輔助工具，不構成投資建議。歷史績效不代表未來。
 
 ## 部署（約 5 分鐘）
-1. 在 GitHub 建立新 repo，把這個資料夾全部推上去（`git init && git add . && git commit -m init && git push`）。
-2. Repo → **Settings → Pages**：Source 選 `Deploy from a branch`，Branch 選 `main` / `(root)`。
-3. Repo → **Actions → 每日更新訊號 → Run workflow**，首次會抓約 21 年資料（數分鐘）。
-4. 打開 `https://<你的帳號>.github.io/<repo>/`，手機瀏覽器選「加入主畫面」即可安裝。之後每個交易日台北 17:40 自動更新。
+1. 在 GitHub 建立新 repo，用網頁 **Add file → Upload files**，把解壓後的所有檔案（全在同一層，不含 `daily.yml`）一次選取上傳。
+2. 建立自動更新：**Add file → Create new file**，檔名欄輸入 `.github/workflows/daily.yml`（輸入斜線會自動建立資料夾），貼上 `daily.yml` 的全部內容後 Commit。這是 GitHub 規定必須放在資料夾內的唯一檔案。
+3. Repo → **Settings → Pages**：Source 選 `Deploy from a branch`，Branch 選 `main` / `(root)`。
+4. Repo → **Actions → 每日更新訊號 → Run workflow**，首次會抓約 21 年資料（數分鐘）。
+5. 打開 `https://<你的帳號>.github.io/<repo>/`，手機瀏覽器選「加入主畫面」即可安裝。之後每個交易日台北 17:40 自動更新。
 
 ## 用 Codex 繼續開發
 本專案附 `AGENTS.md`，Codex 會依其中規則（繁中、離線、樣本外驗證、不加依賴）工作。可直接下指令，例如：
@@ -17,9 +18,9 @@
 ## 運作方式
 | 檔案 | 功能 |
 |---|---|
-| `scripts/fetch_taiex.py` | 從證交所增量下載加權指數日 K |
-| `scripts/backtest.py` | 14 種反轉訊號（7 買/7 賣）＋ 2~3 個組合；前 60% 挑選、後 40% 樣本外檢驗；輸出今日建議 |
-| `scripts/screen.py` | 當日個股行情＋三大法人，多因子排名 → 買 10／賣 10 |
+| `fetch_taiex.py` | 從證交所增量下載加權指數日 K |
+| `backtest.py` | 14 種反轉訊號（7 買/7 賣）＋ 2~3 個組合；前 60% 挑選、後 40% 樣本外檢驗；輸出今日建議 |
+| `screen.py` | 當日個股行情＋三大法人，多因子排名 → 買 10／賣 10 |
 | `index.html` `sw.js` | 離線 PWA；資料抓不到時使用最後一次快取 |
 
 ## 已知限制（請務必知道）
