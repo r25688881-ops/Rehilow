@@ -59,7 +59,7 @@ section{display:none}section.a{display:block;animation:in .25s}
 @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .empty{color:var(--mu);text-align:center;padding:24px 0;font-size:13px}
 .tag.h{border-color:#22d3ee55;color:#67e8f9}
-.act{flex:none;text-align:right}.act .tag{margin:0}
+.actcol{flex:none;text-align:right}.actcol .tag{margin:0}
 .vd{padding:9px 0;border-bottom:1px solid #16224a;font-size:13px}.vd:last-child{border:0}
 .sub{margin:14px 0 6px;font-size:12px;color:var(--mu)}.sub:first-child{margin-top:0}
 .tbl{overflow-x:auto}.tbl table{min-width:100%}
@@ -198,7 +198,7 @@ const ACT_ORDER={"賣出":0,"續買":1,"抱":2,"買進":3,"候補":4,"觀望":5}
 function advRow(r){
   const cls=r.act==="賣出"?"s":(r.act==="買進"||r.act==="續買")?"b":"h";
   const l1=r.entry!=null?`買 ${r.entry}（${r.entry_date.slice(5)}）｜現 ${r.close}｜持有 ${r.age} 日｜損益 ${pc(r.ret)}`:`收 ${r.close}｜分數 ${r.score}`;
-  return `<div class="stk"><div class="m"><div class="n">${r.name}<i>${r.code}</i></div><div class="r">${l1}</div><div class="r">${r.why}${r.reasons?"："+r.reasons.join("・"):""}</div></div><div class="act"><span class="tag ${cls}">${r.act}</span></div></div>`;
+  return `<div class="stk"><div class="m"><div class="n">${r.name}<i>${r.code}</i></div><div class="r">${l1}</div><div class="r">${r.why}${r.reasons?"："+r.reasons.join("・"):""}</div></div><div class="actcol"><span class="tag ${cls}">${r.act}</span></div></div>`;
 }
 function scoreTable(c){
   const W=["1","5","10","20"],cell=(x,f)=>x&&x.n?f(x):"—";
