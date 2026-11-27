@@ -58,6 +58,14 @@ nav button.a{color:var(--cy);background:#22d3ee14}
 section{display:none}section.a{display:block;animation:in .25s}
 @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .empty{color:var(--mu);text-align:center;padding:24px 0;font-size:13px}
+.tag.h{border-color:#22d3ee55;color:#67e8f9}
+.act{flex:none;text-align:right}.act .tag{margin:0}
+.vd{padding:9px 0;border-bottom:1px solid #16224a;font-size:13px}.vd:last-child{border:0}
+.sub{margin:14px 0 6px;font-size:12px;color:var(--mu)}.sub:first-child{margin-top:0}
+.tbl{overflow-x:auto}.tbl table{min-width:100%}
+nav button{font-size:10.5px}
+#trk-score th,#trk-score td,#trk-sig td:nth-child(n+2),#trk-trades td:nth-child(-n+4){white-space:nowrap}
+#trk-trades td:first-child small{display:block}
 </style>
 </head>
 <body>
@@ -79,6 +87,18 @@ section{display:none}section.a{display:block;animation:in .25s}
 
   <section id="t-buy"><div class="card"><h2>🔴 偏多觀察 10 檔</h2><div id="l-buy"></div><div class="small" id="m-buy"></div></div></section>
   <section id="t-sell"><div class="card"><h2>🟢 偏空／風險 10 檔</h2><div id="l-sell"></div><div class="small" id="m-sell"></div></div></section>
+
+  <section id="t-trk">
+    <div class="card"><h2>這份建議準不準？</h2><div id="trk-verdict" class="small">載入中…</div></div>
+    <div class="card"><h2>今日操作建議（明日開盤執行）</h2><div id="trk-adv"></div><div class="small" id="trk-advd" style="margin-top:8px"></div></div>
+    <div class="card"><h2>累計績效（紙上交易）</h2><div class="grid" id="trk-kpi"></div></div>
+    <div class="card"><h2>淨值曲線</h2><canvas id="cv2"></canvas>
+      <div class="leg"><span><i style="background:#22d3ee"></i>照建議操作</span><span><i style="background:#8b9ac7"></i>母體等權（滿倉）</span></div></div>
+    <div class="card"><h2>前瞻驗證：名單上的股票之後表現如何</h2><div id="trk-score"></div></div>
+    <div class="card"><h2>已結束的交易（買進→賣出）</h2><div id="trk-trades"></div></div>
+    <div class="card"><h2>哪些訊號最有效（偏多名單，10 日超額）</h2><div id="trk-sig"></div></div>
+    <div class="card small" id="trk-note"></div>
+  </section>
 
   <section id="t-bt">
     <div class="card"><h2>樣本外淨值（只含訓練期之後、未參與挑選的資料）</h2><canvas id="cv"></canvas>
@@ -108,6 +128,7 @@ section{display:none}section.a{display:block;animation:in .25s}
   <button class="a" data-t="today"><svg viewBox="0 0 24 24"><path d="M3 12l4-6 4 8 4-10 6 12"/></svg>今日</button>
   <button data-t="buy"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>買進</button>
   <button data-t="sell"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>賣出</button>
+  <button data-t="trk"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-9"/><circle cx="20" cy="7" r="1.6"/><path d="M3 21h18"/></svg>績效</button>
   <button data-t="bt"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>回測</button>
   <button data-t="tips"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z"/></svg>建議</button>
 </nav>
@@ -121,7 +142,7 @@ async function load(name){
 function net(){const c=$("#net");const on=navigator.onLine;c.textContent=on?"線上":"離線模式";c.className="chip "+(on?"on":"off")}
 addEventListener("online",net);addEventListener("offline",net);net();
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("nav button,section").forEach(x=>x.classList.remove("a"));b.classList.add("a");$("#t-"+b.dataset.t).classList.add("a");scrollTo(0,0);if(b.dataset.t==="bt")drawEq()});
+  document.querySelectorAll("nav button,section").forEach(x=>x.classList.remove("a"));b.classList.add("a");$("#t-"+b.dataset.t).classList.add("a");scrollTo(0,0);if(b.dataset.t==="bt")drawEq();if(b.dataset.t==="trk")drawTrk()});
 
 let SIG=null;
 function renderSig(j){
@@ -148,16 +169,19 @@ function renderSig(j){
   $("#eqs").innerHTML=s?`樣本外（${e.dates[0]} 起）：策略年化 ${pct(s.cagr)}、最大回檔 ${pct(s.mdd)}；買進持有年化 ${pct(b.cagr)}、最大回檔 ${pct(b.mdd)}；切換 ${e.trades} 次。`:"";
   $("#bt-note").innerHTML=`資料 ${j.data_start} ~ ${j.data_end}（${j.n_days} 個交易日）。訓練/樣本外分界 ${j.split_date}。基準：任意一天持有 ${j.horizon} 日後上漲機率，訓練期 ${pct(j.base_rate.train_up,0)}、樣本外 ${pct(j.base_rate.test_up,0)}。訊號需明顯優於基準才算有效。多組合同時比較有「多重檢定」風險，單次通過不代表真有預測力。`;
 }
-function drawEq(){
-  if(!SIG||!SIG.equity.dates.length)return;const e=SIG.equity,cv=$("#cv"),dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;
-  if(!w)return;cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);
-  const all=[...e.strategy,...e.buyhold],mn=Math.min(...all),mx=Math.max(...all),n=e.strategy.length,P=6;
-  const X=i=>P+(w-2*P)*i/(n-1),Y=v=>h-P-(h-2*P)*(v-mn)/(mx-mn||1);
+function drawLines(cv,A,B){
+  const dpr=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!A.length)return;
+  cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext("2d");g.scale(dpr,dpr);
+  const all=[...A,...B],mn=Math.min(...all),mx=Math.max(...all),n=A.length,P=6;
+  const X=i=>P+(w-2*P)*i/Math.max(1,n-1),Y=v=>h-P-(h-2*P)*(v-mn)/(mx-mn||1);
   g.strokeStyle="#1d2a55";g.lineWidth=1;for(let i=0;i<4;i++){const y=P+(h-2*P)*i/3;g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}
   const line=(a,c,lw,glow)=>{g.beginPath();a.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.strokeStyle=c;g.lineWidth=lw;g.shadowColor=glow?c:"transparent";g.shadowBlur=glow?10:0;g.stroke();g.shadowBlur=0};
-  line(e.buyhold,"#8b9ac7",1.5,false);line(e.strategy,"#22d3ee",2.2,true);
+  line(B,"#8b9ac7",1.5,false);line(A,"#22d3ee",2.2,true);
 }
-addEventListener("resize",drawEq);
+function drawEq(){if(SIG&&SIG.equity.dates.length)drawLines($("#cv"),SIG.equity.strategy,SIG.equity.buyhold)}
+let TRK=null;
+function drawTrk(){if(TRK&&TRK.stats.equity.dates.length)drawLines($("#cv2"),TRK.stats.equity.strategy,TRK.stats.equity.bench)}
+addEventListener("resize",()=>{drawEq();drawTrk()});
 function renderStocks(j){
   const mk=(k,key,color)=>{
     const L=$("#l-"+k);if(!j[k]||!j[k].length){L.innerHTML='<div class="empty">尚無資料</div>';return}
@@ -169,8 +193,46 @@ function renderStocks(j){
   };
   mk("buy","buy","#f87171");mk("sell","sell","#34d399");
 }
+const pc=(v,d=2)=>v==null?"—":`<span class="${v>0?"up":v<0?"dn":""}">${v>0?"+":""}${(v*100).toFixed(d)}%</span>`;
+const ACT_ORDER={"賣出":0,"續買":1,"抱":2,"買進":3,"候補":4,"觀望":5};
+function advRow(r){
+  const cls=r.act==="賣出"?"s":(r.act==="買進"||r.act==="續買")?"b":"h";
+  const l1=r.entry!=null?`買 ${r.entry}（${r.entry_date.slice(5)}）｜現 ${r.close}｜持有 ${r.age} 日｜損益 ${pc(r.ret)}`:`收 ${r.close}｜分數 ${r.score}`;
+  return `<div class="stk"><div class="m"><div class="n">${r.name}<i>${r.code}</i></div><div class="r">${l1}</div><div class="r">${r.why}${r.reasons?"："+r.reasons.join("・"):""}</div></div><div class="act"><span class="tag ${cls}">${r.act}</span></div></div>`;
+}
+function scoreTable(c){
+  const W=["1","5","10","20"],cell=(x,f)=>x&&x.n?f(x):"—";
+  return `<table><tr><th>持有</th><th>偏多筆數</th><th>平均</th><th>超額</th><th>命中</th><th>偏空平均</th><th>跌命中</th></tr>`+W.map(w=>{
+    const b=c.B[w],s=c.S[w];
+    return `<tr><td>${w} 日</td><td>${b.n||0}</td><td>${cell(b,x=>pc(x.avg))}</td><td>${cell(b,x=>pc(x.excess))}</td><td>${cell(b,x=>(x.rate*100).toFixed(0)+"%")}</td><td>${cell(s,x=>pc(x.avg))}</td><td>${cell(s,x=>(x.rate*100).toFixed(0)+"%")}</td></tr>`}).join("")+`</table>`;
+}
+function renderTrk(j){
+  TRK=j;const st=j.stats,eq=st.equity;
+  $("#trk-verdict").innerHTML=st.verdict.map(v=>`<div class="vd">${v}</div>`).join("")+`<div class="vd">「命中」：偏多＝上漲且贏過母體；偏空＝之後下跌。超額＝個股報酬減同期母體平均。</div>`;
+  const a=j.advice;
+  if(a){
+    const rows=[...a.rows].sort((x,y)=>ACT_ORDER[x.act]-ACT_ORDER[y.act]);
+    $("#trk-adv").innerHTML=rows.length?rows.map(advRow).join(""):'<div class="empty">目前沒有持股，也沒有新的買進訊號。</div>';
+    $("#trk-advd").textContent=`依 ${a.date} 收盤資料。買進＝新進場、續買＝訊號再現、抱＝繼續持有、賣出＝出場。實際成交以隔日開盤價計。`;
+  }else $("#trk-adv").innerHTML='<div class="empty">尚無資料</div>';
+  const T=j.trades,n=T.length,w=T.filter(t=>t.ret>0).length,avg=n?T.reduce((x,t)=>x+t.ret,0)/n:null,dy=n?T.reduce((x,t)=>x+t.days,0)/n:null;
+  const K=(l,v)=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`;
+  $("#trk-kpi").innerHTML=[K("照建議累計",pc(eq.total,1)),K("母體同期",pc(eq.bench_total,1)),K("最大回檔",pc(eq.mdd,1)),
+    K("已結筆數",n),K("勝率",n?(w/n*100).toFixed(0)+"%":"—"),K("平均每筆",pc(avg)),
+    K("平均持有",dy==null?"—":dy.toFixed(1)+" 日"),K("持股中",st.open_n+" 檔"),K("未實現(組合)",pc(st.unrealized,1))].join("");
+  const lv=st.live,bf=st.backfill;
+  $("#trk-score").innerHTML=`<div class="sub">實盤前瞻（${st.live_start?st.live_start+" 之後":"尚未開始"}）</div>`+scoreTable(lv.card)+`<div class="sub">歷史重播（回補，用過去資料逐日重算名單）</div>`+scoreTable(bf.card);
+  const tr=[...T].reverse().slice(0,30);
+  $("#trk-trades").innerHTML=tr.length?`<div class="tbl"><table><tr><th>股票</th><th>買→賣</th><th>報酬</th><th>日</th><th>賣出原因</th></tr>${tr.map(t=>`<tr><td>${t.name}<span class="small"> ${t.code}</span></td><td>${t.entry_date.slice(5)}→${t.exit_date.slice(5)}</td><td>${pc(t.ret)}</td><td>${t.days}</td><td style="text-align:right">${t.why||"—"}${t.live?"":'<span class="small">（補）</span>'}</td></tr>`).join("")}</table></div>`:'<div class="empty">尚無已結束交易</div>';
+  const nm=st.sig_names||{};
+  $("#trk-sig").innerHTML=st.by_signal.length?`<table><tr><th>訊號</th><th>筆數</th><th>10日超額</th></tr>${st.by_signal.map(x=>`<tr><td>${nm[x.id]||x.id}</td><td>${x.n}</td><td>${pc(x.excess)}</td></tr>`).join("")}</table>`:'<div class="empty">樣本還不夠（每個訊號至少 5 筆）</div>';
+  const p=j.params;
+  $("#trk-note").innerHTML=`規則：收盤出訊號、隔日開盤成交；最多同時 ${p.max_pos} 檔等權；停損 ${p.stop*100}%、自高點回落 ${p.trail*100}% 停利、最長持有 ${p.max_hold} 日；賣出後 ${p.cooldown} 日不買回。成本已計：手續費 ${(p.fee*100).toFixed(4)}%×2＋證交稅 ${p.tax*100}%。<br>限制：這是紙上模擬，不是真實下單；漲跌停鎖死視為成交不了；除權息當天股價下跌會被當成虧損（小幅低估報酬）；母體基準滿倉而策略有閒置現金，淨值比較對策略偏嚴格。「回補」是用歷史重播，真正可信的是「實盤前瞻」，需累積至少 30 筆。僅供研究，不構成投資建議。`;
+  if(document.querySelector("#t-trk.a"))drawTrk();
+}
 (async()=>{
-  const [s,t]=await Promise.all([load("signals.json"),load("stocks.json")]);
+  const [s,t,k]=await Promise.all([load("signals.json"),load("stocks.json"),load("track.json")]);
+  if(k)renderTrk(k);else $("#trk-verdict").textContent="尚無追蹤資料，請先執行 Actions（需要 stocks_hist.json 與 track.py）";
   if(s)renderSig(s);else{$("#asof").textContent="尚無資料，請先執行 Actions";$("#act").textContent="—"}
   if(t){renderStocks(t);if(t.demo)$("#demo").hidden=false}
 })();

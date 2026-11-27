@@ -1,0 +1,40 @@
+# 請把此檔內容貼到 GitHub 新檔案：.github/workflows/daily.yml（此檔放根目錄不會生效）
+name: 每日更新訊號
+
+on:
+  schedule:
+    - cron: "40 9 * * 1-5"   # UTC 09:40 = 台北 17:40（週一至週五）
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 下載加權指數日K（首次約抓 21 年，需數分鐘）
+        run: python fetch_taiex.py
+      - name: 回測並產生今日大盤建議
+        run: python backtest.py
+      - name: 下載上市個股日行情（增量；首次回補約 135 個交易日，需數分鐘）
+        run: python fetch_stocks.py
+      - name: 選出買賣各 10 檔
+        run: python stock_signals.py
+      - name: 長期追蹤與驗證（紙上交易、每日建議、前瞻記分卡）
+        run: python track.py
+      - name: 提交資料
+        run: |
+          git config user.name "tw-radar-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add taiex.csv signals.json stocks.json stocks_hist.json track.json
+          git diff --cached --quiet || (git commit -m "data: $(date -u +%F) 更新" && git push)

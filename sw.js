@@ -3,9 +3,9 @@
 //  - 資料 JSON：網路優先（5 秒逾時），失敗回退到最後一次快取；快取鍵忽略 ?t= 參數
 //  - 預快取逐檔加入：個別檔案缺漏不會讓整個安裝失敗
 // 改動任何靜態檔案或此策略時，請把 VER +1。
-const VER = "tw-radar-v3";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./signals.json", "./stocks.json"];
-const DATA_RE = /\/(signals|stocks)\.json$/;
+const VER = "tw-radar-v4";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./signals.json", "./stocks.json", "./track.json"];
+const DATA_RE = /\/(signals|stocks|track)\.json$/;
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

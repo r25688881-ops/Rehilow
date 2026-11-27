@@ -1,5 +1,7 @@
 """個股反轉訊號排名：從 stocks_hist.json 挑成交值前 200 檔，輸出偏多/偏空各 10 檔到 stocks.json。
 重用大盤回測的 14 個指標訊號（backtest.py 或 回測.py 皆可）。僅為統計排名，不構成投資建議。
+
+pick(hist, dates, i) 只使用 dates[:i+1] 的資料（不看未來），track.py 用它重播歷史每一天的名單。
 """
 import datetime as dt
 import json
@@ -25,14 +27,10 @@ def series(hist, code, dates):
     return o, h, l, c, v, val
 
 
-def run():
-    with open(os.path.join(ROOT, "stocks_hist.json"), encoding="utf-8") as f:
-        hist = json.load(f)
-    dates = sorted(hist["d"])
-    if len(dates) < MIN_BARS:
-        raise SystemExit("資料不足，請先執行 fetch_stocks.py")
-    last = dates[-1]
-    recent = dates[-20:]
+def pick(hist, dates, i):
+    """回傳 (buys, sells, 母體檔數)，資料截至 dates[i]（含）。"""
+    ds = dates[:i + 1]
+    last, recent = ds[-1], ds[-20:]
     turn = {}
     for code in hist["d"][last]:
         vals = [hist["d"][d][code][5] for d in recent if code in hist["d"][d]]
@@ -42,7 +40,7 @@ def run():
 
     buys, sells = [], []
     for code in universe:
-        o, h, l, c, v, val = series(hist, code, dates)
+        o, h, l, c, v, val = series(hist, code, ds)
         if len(c) < MIN_BARS:
             continue
         S, snap = bt.build_signals(o, h, l, c)
@@ -58,18 +56,26 @@ def run():
         boost = 0.5 if vol_ratio >= 1.5 else 0
         if nb and len(nb) >= len(ns):
             sc = len(nb) + boost
-            buys.append(dict(item, score=sc, buy=min(100, round(sc * 25)), reasons=[bt.SIG_NAMES[k] for k in nb]))
+            buys.append(dict(item, score=sc, buy=min(100, round(sc * 25)), ids=nb, reasons=[bt.SIG_NAMES[k] for k in nb]))
         if ns and len(ns) >= len(nb):
             sc = len(ns) + boost
-            sells.append(dict(item, score=sc, sell=min(100, round(sc * 25)), reasons=[bt.SIG_NAMES[k] for k in ns]))
+            sells.append(dict(item, score=sc, sell=min(100, round(sc * 25)), ids=ns, reasons=[bt.SIG_NAMES[k] for k in ns]))
     key = lambda x: (x["score"], x["turnover"])
-    buys = sorted(buys, key=key, reverse=True)[:PICK]
-    sells = sorted(sells, key=key, reverse=True)[:PICK]
+    return sorted(buys, key=key, reverse=True)[:PICK], sorted(sells, key=key, reverse=True)[:PICK], len(universe)
+
+
+def run():
+    with open(os.path.join(ROOT, "stocks_hist.json"), encoding="utf-8") as f:
+        hist = json.load(f)
+    dates = sorted(hist["d"])
+    if len(dates) < MIN_BARS:
+        raise SystemExit("資料不足，請先執行 fetch_stocks.py")
+    buys, sells, n_uni = pick(hist, dates, len(dates) - 1)
     write_json(os.path.join(ROOT, "stocks.json"), {
-        "generated": dt.datetime.now().isoformat(timespec="seconds"), "date": last, "data_end": last, "universe": len(universe), "history_days": len(dates), "demo": False,
-        "buy": buys, "sell": sells,
+        "generated": dt.datetime.now().isoformat(timespec="seconds"), "date": dates[-1], "data_end": dates[-1], "universe": n_uni,
+        "history_days": len(dates), "demo": False, "buy": buys, "sell": sells,
         "note": "訊號為近 5 日內觸發的反轉指標數量（成交量放大加 0.5 分），僅為統計排名，個別股票的歷史勝率未經驗證。"})
-    print(f"[stocks] 母體 {len(universe)} 檔｜偏多 {len(buys)}｜偏空 {len(sells)}｜資料至 {last}")
+    print(f"[stocks] 母體 {n_uni} 檔｜偏多 {len(buys)}｜偏空 {len(sells)}｜資料至 {dates[-1]}")
 
 
 if __name__ == "__main__":
