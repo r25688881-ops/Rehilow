@@ -11,7 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-:root{--bg:#070b18;--panel:#0e1530;--line:#1d2a55;--tx:#e6ecff;--mu:#8b9ac7;--cy:#22d3ee;--vi:#a78bfa;--up:#34d399;--dn:#f87171;--am:#fbbf24}
+:root{--bg:#070b18;--panel:#0e1530;--line:#1d2a55;--tx:#e6ecff;--mu:#8b9ac7;--cy:#22d3ee;--vi:#a78bfa;--up:#f87171;--dn:#34d399;--am:#fbbf24}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 body{background:radial-gradient(900px 420px at 80% -10%,#1a1a5a55,transparent),radial-gradient(700px 400px at -10% 10%,#0a3a5a55,transparent),var(--bg);min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
@@ -21,14 +21,14 @@ header img{width:34px;height:34px;border-radius:9px}
 header h1{font-size:17px;margin:0;letter-spacing:.5px}
 header small{display:block;color:var(--mu);font-size:11px}
 .chip{margin-left:auto;font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mu);white-space:nowrap}
-.chip.on{color:var(--up);border-color:#34d39955}.chip.off{color:var(--am);border-color:#fbbf2455}
+.chip.on{color:var(--cy);border-color:#22d3ee55}.chip.off{color:var(--am);border-color:#fbbf2455}
 main{position:relative;max-width:720px;margin:0 auto;padding:14px 14px 0}
 .card{background:linear-gradient(180deg,#111a3a,#0c1330);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
 .card h2{font-size:13px;margin:0 0 10px;color:var(--mu);font-weight:600;letter-spacing:1px}
 .warn{background:#3a1420;border:1px solid #f8717166;color:#fecaca;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}
 .hero{text-align:center;position:relative;overflow:hidden}
 .hero .act{font-size:42px;font-weight:800;letter-spacing:4px;margin:4px 0}
-.hero.buy .act{color:var(--up);text-shadow:0 0 24px #34d39988}.hero.sell .act{color:var(--dn);text-shadow:0 0 24px #f8717188}.hero.hold .act{color:var(--cy);text-shadow:0 0 24px #22d3ee66}
+.hero.buy .act{color:var(--up);text-shadow:0 0 24px #f8717188}.hero.sell .act{color:var(--dn);text-shadow:0 0 24px #34d39988}.hero.hold .act{color:var(--cy);text-shadow:0 0 24px #22d3ee66}
 .hero .lbl{color:var(--mu);font-size:13px}
 .px{display:flex;justify-content:center;gap:14px;align-items:baseline;margin-top:10px}
 .px b{font-size:26px;font-variant-numeric:tabular-nums}
@@ -37,7 +37,7 @@ main{position:relative;max-width:720px;margin:0 auto;padding:14px 14px 0}
 .kpi{background:#0a1028;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
 .kpi span{display:block;color:var(--mu);font-size:11px}.kpi b{font-size:16px;font-variant-numeric:tabular-nums}
 .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:8px;margin:2px 4px 2px 0;border:1px solid var(--line);color:var(--tx);background:#0a1028}
-.tag.b{border-color:#34d39966;color:#86efac}.tag.s{border-color:#f8717166;color:#fca5a5}
+.tag.b{border-color:#f8717166;color:#fca5a5}.tag.s{border-color:#34d39966;color:#86efac}
 .stk{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #16224a}
 .stk:last-child{border:0}
 .rk{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;background:#0a1028;border:1px solid var(--line);color:var(--cy);flex:none}
@@ -77,8 +77,8 @@ section{display:none}section.a{display:block;animation:in .25s}
     <div class="card small">⚠ 本工具為歷史統計與研究輔助，不構成投資建議。歷史規律不保證未來重演，請自行評估風險並控管部位。</div>
   </section>
 
-  <section id="t-buy"><div class="card"><h2>🟢 偏多觀察 10 檔</h2><div id="l-buy"></div><div class="small" id="m-buy"></div></div></section>
-  <section id="t-sell"><div class="card"><h2>🔴 偏空／風險 10 檔</h2><div id="l-sell"></div><div class="small" id="m-sell"></div></div></section>
+  <section id="t-buy"><div class="card"><h2>🔴 偏多觀察 10 檔</h2><div id="l-buy"></div><div class="small" id="m-buy"></div></div></section>
+  <section id="t-sell"><div class="card"><h2>🟢 偏空／風險 10 檔</h2><div id="l-sell"></div><div class="small" id="m-sell"></div></div></section>
 
   <section id="t-bt">
     <div class="card"><h2>樣本外淨值（只含訓練期之後、未參與挑選的資料）</h2><canvas id="cv"></canvas>
@@ -167,7 +167,7 @@ function renderStocks(j){
       <div class="sc"><b style="color:${color}">${s[key].toFixed(0)}</b><div class="bar"><u style="width:${s[key]}%;background:${color}"></u></div></div></div>`).join("");
     $("#m-"+k).innerHTML=`<div style="margin-top:10px">${j.date} 收盤後｜母體：成交值前 ${j.universe} 檔｜歷史累積 ${j.history_days} 日。分數為近 5 日觸發的反轉指標數（量放大加分），未經個股歷史驗證，僅是『觀察名單』，非買賣指令。</div>`;
   };
-  mk("buy","buy","#34d399");mk("sell","sell","#f87171");
+  mk("buy","buy","#f87171");mk("sell","sell","#34d399");
 }
 (async()=>{
   const [s,t]=await Promise.all([load("signals.json"),load("stocks.json")]);
